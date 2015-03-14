@@ -30,6 +30,8 @@ var MyScene = (function() {
     },
     update: function(dt) {
       var self = this;
+      self.sprite.rotate += 60 * dt * (Math.PI / 180);
+      self.satelite.rotate += 80 * dt * (Math.PI / 180);
     },
     draw: function(G) {
       var self = this;
