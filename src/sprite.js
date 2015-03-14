@@ -34,12 +34,23 @@ var Node = (function() {
           break;
         }
     },
-    draw: function(G) {
+    traverseDraw: function(G) {
       var self = this;
+      self.beforeDraw(G);
+      self.draw(G);
       var children = self.children;
       var len = children.length;
       for (var i = 0; i < len; ++i)
-        children[i].draw(G);
+        children[i].traverseDraw(G);
+      self.afterDraw(G);
+    },
+    beforeDraw: function(G) {
+      G.saveContext();
+    },
+    draw: function(G) {
+    },
+    afterDraw: function(G) {
+      G.restoreContext();
     },
 
     runAction: function(action) {
@@ -48,13 +59,16 @@ var Node = (function() {
       actionRunner.update(self, 0);  // 時間0で初期化
       self.actionRunners.push(actionRunner);
     },
+    traverseUpdate: function(dt) {
+      var self = this;
+      self.update(dt);
+      var children = self.children;
+      for (var i = 0; i < children.length; ++i)
+        children[i].traverseUpdate(dt);
+    },
     update: function(dt) {
       var self = this;
       executeActionRunners(self, dt);
-
-      var children = self.children;
-      for (var i = 0; i < children.length; ++i)
-        children[i].update(dt);
     },
   });
 
@@ -85,7 +99,6 @@ var Sprite = (function() {
     },
     draw: function(G) {
       var self = this;
-      G.saveContext();
       G.translate(self.pos.x, self.pos.y);
       G.rotate(self.rotate);
       var x = -self.anchorPoint.x * self.image.width * self.scale.x;
@@ -95,10 +108,6 @@ var Sprite = (function() {
       G.setFillStyle(self.color);
       G.context.globalAlpha = self.alpha;
       G.drawImage(self.image, x, y, w, h);
-
-      // 子供の描画呼び出し
-      Super.prototype.draw.call(self, G);
-      G.restoreContext();
     },
   });
 
@@ -144,8 +153,6 @@ var Label = (function() {
     },
     draw: function(G) {
       var self = this;
-
-      G.saveContext();
       if (!self.font)
         self.font = Math.round(self.fontSize * self.scale.x * G.scale) + "px '" + self.fontName + "'";
 
@@ -162,11 +169,6 @@ var Label = (function() {
       G.setFillStyle(self.color);
       G.context.globalAlpha = self.alpha;
       G.fillText(self.text, x, y);
-
-      // 子供の描画呼び出し
-      Super.prototype.draw.call(self, G);
-
-      G.restoreContext();
     },
   });
   return Label;
@@ -188,11 +190,11 @@ var Scene = (function() {
       var self = this;
       self.bgColor = color;
     },
-    draw: function(G) {
+    beforeDraw: function(G) {
       var self = this;
+      Super.prototype.beforeDraw.call(self, G);
       G.setFillStyle(self.bgColor);
       G.fillRect(0, 0, G.width, G.height);
-      Super.prototype.draw.call(self, G);
     },
   });
   return Scene;

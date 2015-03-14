@@ -70,12 +70,12 @@ window.addEventListener('load', function() {
   G.setRenderFunc(
     // Update
     function() {
-      scene.update(1.0 / fps);
+      scene.traverseUpdate(1.0 / fps);
     },
 
     // Draw
     function() {
-      scene.draw(G);
+      scene.traverseDraw(G);
     },
 
     1000 / fps
