@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Kokos example</title>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  </head>
+  <body>
+    <h1>Kokos example</h1>
+
+    <canvas id="canvas" width="600" height="480" style="border:solid 1px black;">
+    </canvas>
+
+    <script type="text/javascript" src="../src/time_util.js"></script>
+    <script type="text/javascript" src="../src/graphics.js"></script>
+
+    <script type="text/javascript">
+//![CDATA[
+window.addEventListener('load', function() {
+  'use strict';
+
+  var canvas = document.getElementById('canvas');
+  var G = new Graphics(canvas);
+
+  G.setFillStyle(G.color(255, 0, 0));
+  G.fillRect(50, 50, 100, 100);
+
+  G.setFillStyle(G.color(0, 255, 0));
+  G.fillCircle(250, 100, 50);
+
+  G.setStrokeStyle(G.color(0, 0, 255));
+  G.setLineWidth(10);
+  G.setLineCap('round');
+  G.line(350, 50, 450, 150);
+
+  G.setFillStyle(G.color(0, 0, 0));
+  G.setFont("30px 'Monotype'");
+  G.fillText('Hello, world!', 50, 190);
+
+  var img = new Image();
+  img.onload = function(event) {
+    G.drawImage(img, 50, 200);
+  };
+  img.src = 'img.png';
+});
+//]]
+    </script>
+  </body>
+</html>
