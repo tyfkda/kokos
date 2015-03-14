@@ -182,6 +182,17 @@ var Scene = (function() {
     init: function() {
       var self = this;
       Super.call(self);
+      self.bgColor = Graphics.color(255, 255, 255);
+    },
+    setBackGroundColor: function(color) {
+      var self = this;
+      self.bgColor = color;
+    },
+    draw: function(G) {
+      var self = this;
+      G.setFillStyle(self.bgColor);
+      G.fillRect(0, 0, G.width, G.height);
+      Super.prototype.draw.call(self, G);
     },
   });
   return Scene;

@@ -192,6 +192,8 @@ var Graphics = (function() {
     // スケールの設定
     setDesignScale: function(scale) {
       this.scale = scale;
+      this.width = this.canvas.width / scale;
+      this.height = this.canvas.height / scale;
     },
     // カラー値を返す
     color: Graphics.color,

@@ -42,9 +42,6 @@ var MyScene = (function() {
     draw: function(G) {
       var self = this;
 
-      G.setFillStyle(G.color(255, 255, 255));
-      G.fillRect(0, 0, G.width, G.height);
-
       Super.prototype.draw.call(self, G);
 
       G.setFillStyle(G.color(255, 0, 0));
