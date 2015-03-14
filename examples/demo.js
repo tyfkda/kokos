@@ -18,6 +18,12 @@ var MyScene = (function() {
       self.satelite.scale.set(0.5, 0.5);
       self.sprite.addChild(self.satelite);
 
+      var label = new Label('Hello, world!');
+      label.pos.set(50, 50);
+      label.setFont(30, 'Monotype');
+      label.setColor(G.color(0, 0, 0));
+      self.addChild(label);
+
       var touchStart = function(event) {
         return true;
       };
@@ -51,10 +57,6 @@ var MyScene = (function() {
       G.setLineWidth(10);
       G.setLineCap('round');
       G.line(350, 100, 450, 200);
-
-      G.setFillStyle(G.color(0, 0, 0));
-      G.setFont("30px 'Monotype'");
-      G.fillText('Hello, world!', 50, 50);
     },
   });
   return MyScene;
