@@ -260,6 +260,8 @@ var Graphics = (function() {
     restoreContext: function() {
       this.context.restore();
     },
+    translate: function(x, y) { return this.context.translate(x * this.scale, y * this.scale); },
+    rotate: function(angle) { return this.context.rotate(angle); },
 
 
     // 描画関数の設定

@@ -86,8 +86,8 @@ var Sprite = (function() {
     draw: function(G) {
       var self = this;
       G.saveContext();
-      G.context.translate(self.pos.x, self.pos.y);
-      G.context.rotate(self.rotate);
+      G.translate(self.pos.x, self.pos.y);
+      G.rotate(self.rotate);
       var x = -self.anchorPoint.x * self.image.width * self.scale.x;
       var y = -self.anchorPoint.y * self.image.height * self.scale.y;
       var w = self.image.width * self.scale.x;
