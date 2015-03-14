@@ -11,18 +11,25 @@ var MyScene = (function() {
       var img = new Image();
       img.src = 'img.png';
 
-      var sprite = new Sprite(img, G.width / 2, G.height - 150);
-      self.addChild(sprite);
+      self.sprite = new Sprite(img, G.width / 2, G.height / 2);
+      self.addChild(self.sprite);
+
+      self.satelite = new Sprite(img, 150, 0);
+      self.satelite.scale.set(0.5, 0.5);
+      self.sprite.addChild(self.satelite);
 
       var touchStart = function(event) {
         return true;
       };
       var touchMove = function(event) {
         var pos = G.getCanvasTouchPoint(event);
-        sprite.pos.set(pos);
+        self.sprite.pos.set(pos);
       };
       var touchEnd = null;
       Graphics.setTouchEvents(canvas, touchStart, touchMove, touchEnd);
+    },
+    update: function(dt) {
+      var self = this;
     },
     draw: function(G) {
       var self = this;
@@ -58,16 +65,18 @@ window.addEventListener('load', function() {
   var G = new Graphics(canvas);
   var scene = new MyScene(G);
 
+  var fps = 60;
   G.setRenderFunc(
     // Update
-    null,
+    function() {
+      scene.update(1.0 / fps);
+    },
 
     // Draw
     function() {
       scene.draw(G);
     },
 
-    // FPS
-    1.0 / 60
+    1000 / fps
   );
 });

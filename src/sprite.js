@@ -85,8 +85,9 @@ var Sprite = (function() {
     draw: function(G) {
       G.saveContext();
       var self = this;
-      var x = self.pos.x - self.anchorPoint.x * self.image.width * self.scale.x;
-      var y = self.pos.y - self.anchorPoint.y * self.image.height * self.scale.y;
+      G.context.translate(self.pos.x, self.pos.y);
+      var x = -self.anchorPoint.x * self.image.width * self.scale.x;
+      var y = -self.anchorPoint.y * self.image.height * self.scale.y;
       var w = self.image.width * self.scale.x;
       var h = self.image.height * self.scale.y;
       G.setFillStyle(self.color);
