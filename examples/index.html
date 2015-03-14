@@ -11,6 +11,7 @@
     <canvas id="canvas" width="600" height="480" style="border:solid 1px black;">
     </canvas>
 
+    <script type="text/javascript" src="../src/gawa_native.js"></script>
     <script type="text/javascript" src="../src/time_util.js"></script>
     <script type="text/javascript" src="../src/graphics.js"></script>
 
@@ -42,6 +43,16 @@ window.addEventListener('load', function() {
     G.drawImage(img, 50, 200);
   };
   img.src = 'img.png';
+
+  var touchStart = function(event) {
+    return true;
+  };
+  var touchMove = function(event) {
+    var pos = G.getCanvasTouchPoint(event);
+    G.drawImage(img, pos.x - img.width / 2, pos.y - img.height / 2);
+  };
+  var touchEnd = null;
+  Graphics.setTouchEvents(canvas, touchStart, touchMove, touchEnd);
 });
 //]]
     </script>
