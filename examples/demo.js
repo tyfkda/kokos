@@ -25,19 +25,14 @@ var MyScene = (function() {
       self.addChild(label);
 
       var touchStart = function(event) {
-        return true;
-      };
-      var touchMove = function(event) {
         var pos = G.getCanvasTouchPoint(event);
-        self.sprite.pos.set(pos);
+        self.sprite.stopAllActions();
+        self.sprite.runAction(new ActionMoveTo(0.5, pos));
+        return false;
       };
+      var touchMove = null;
       var touchEnd = null;
       Graphics.setTouchEvents(canvas, touchStart, touchMove, touchEnd);
-    },
-    update: function(dt) {
-      var self = this;
-      self.sprite.rotate += 60 * dt * (Math.PI / 180);
-      self.satelite.rotate += 80 * dt * (Math.PI / 180);
     },
     draw: function(G) {
       var self = this;

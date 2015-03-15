@@ -59,6 +59,10 @@ var Node = (function() {
       actionRunner.update(self, 0);  // 時間0で初期化
       self.actionRunners.push(actionRunner);
     },
+    stopAllActions: function() {
+      var self = this;
+      self.actionRunners.length = 0;
+    },
     traverseUpdate: function(dt) {
       var self = this;
       self.update(dt);
