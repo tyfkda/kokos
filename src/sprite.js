@@ -60,7 +60,7 @@ var Node = (function() {
       var actionRunner = new ActionRunner(action);
       actionRunner.update(self, 0);  // 時間0で初期化
       self.actionRunners.push(actionRunner);
-      return this;
+      return self;
     },
     stopAllActions: function() {
       var self = this;
@@ -113,7 +113,7 @@ var Sprite = (function() {
     },
     setScale: function(x, y) {
       var self = this;
-      self.scale.set(x, y);
+      self.scale.set(x, y != null ? y : x);
       return self;
     },
     setAlpha: function(alpha) {
@@ -174,6 +174,12 @@ var Label = (function() {
       self.anchorPoint.set(x, y);
       return self;
     },
+    setScale: function(x, y) {
+      var self = this;
+      self.scale.set(x, y != null ? y : x);
+      self.measuredSize.x = -1;  // Clear.
+      return self;
+    },
     setFont: function(fontSize, fontName) {
       var self = this;
       self.fontSize = fontSize;
@@ -210,8 +216,11 @@ var Label = (function() {
         self.measuredSize.y = self.fontSize * self.scale.y;  //metrics.height;
       }
 
-      var x = self.pos.x - self.anchorPoint.x * self.measuredSize.x * self.scale.x;
-      var y = self.pos.y - (self.anchorPoint.y - 1) * self.measuredSize.y * self.scale.y;
+      G.translate(self.pos.x, self.pos.y);
+      G.rotate(self.rotate);
+
+      var x = -self.anchorPoint.x * self.measuredSize.x * self.scale.x;
+      var y = -(self.anchorPoint.y - 1) * self.measuredSize.y * self.scale.y;
 
       G.setFillStyle(self.color);
       G.context.globalAlpha = self.alpha;

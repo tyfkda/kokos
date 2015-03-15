@@ -1,45 +1,22 @@
-// アクション
 var Action = (function() {
   'use strict';
 
+  var ActionDuration, ActionRepeat, ActionEase;
+
   var Action = defineClass({
-    init: function() {
-      var self = this;
-    },
     update: function(target, time) {
-      var self = this;
       if (time >= 1)
         time = 1;
       return time;
     },
     isFinished: function(time) {
-      var self = this;
       return time >= 1;
-    },
-  });
-
-  var protos = {
-    // base.
-    moveTo: function(pos) {
-      return new ActionMoveTo(pos);
-    },
-    scaleTo: function(scale) {
-      return new ActionScaleTo(scale);
-    },
-    fadeTo: function(alpha) {
-      return new ActionFadeTo(alpha, this);
-    },
-    fadeOut: function(alpha) {
-      return new ActionFadeTo(0, this);
-    },
-    sequence: function(actions) {
-      return new ActionSequence(actions);
-    },
-    repeat: function(repeat, action) {
-      return new ActionRepeat(repeat, action);
     },
 
     // modifier.
+    repeat: function(times) {
+      return new ActionRepeat(times, this);
+    },
     ease: function(f) {
       return new ActionEase(f, this);
     },
@@ -51,9 +28,95 @@ var Action = (function() {
     applyTo: function(node) {
       return node.runAction(this);
     },
-  };
-  for (var k in protos)
-    Action[k] = Action.prototype[k] = protos[k];
+  });
+
+  ActionDuration = (function() {
+    var Super = Action;
+    return defineClass({
+      parent: Super,
+      init: function(duration, action) {
+        var self = this;
+        Super.call(self);
+        self.duration = duration;
+        self.action = action;
+      },
+      update: function(target, time) {
+        var self = this;
+        if (self.duration > 0)
+          return self.action.update(target, time / self.duration) * self.duration;
+        self.action.update(target, time == 0 ? 0 : 1);
+        return 0;
+      },
+      isFinished: function(time) {
+        var self = this;
+        return time >= self.duration;
+      },
+    });
+  })();
+
+  ActionRepeat = (function() {
+    var Super = Action;
+    return defineClass({
+      parent: Super,
+      init: function(times, action) {
+        var self = this;
+        Super.call(self);
+        self.count = 0;
+        self.times = times;
+        self.action = action;
+        self.finished = false;
+      },
+      update: function(target, time) {
+        var self = this;
+        if (time == 0) {
+          self.finished = false;
+        }
+
+        do {
+          var nextTime = self.action.update(target, time);
+          if (!self.action.isFinished(nextTime))
+            return nextTime;
+          if (self.times > 0 && ++self.count >= self.times) {
+            self.finished = true;
+            return time;
+          }
+
+          time -= nextTime;
+          self.action.update(target, 0);  // 再初期化
+        } while (time > 0);
+        return time;
+      },
+      isFinished: function(time) {
+        var self = this;
+        return self.finished;
+      },
+    });
+
+    return ActionRepeat;
+  })();
+
+  ActionEase = (function() {
+    var Super = Action;
+    return defineClass({
+      parent: Super,
+      init: function(f, action) {
+        var self = this;
+        Super.call(self);
+        self.action = action;
+        self.f = f;
+      },
+      update: function(target, time) {
+        var self = this;
+        var modifiedTime = time;
+        if (time >= 1)
+          modifiedTime = time = 1;
+        else
+          modifiedTime = self.f(time);
+        self.action.update(target, modifiedTime);
+        return time;
+      },
+    });
+  })();
 
   return Action;
 })();
@@ -126,79 +189,6 @@ var ActionSequence = (function() {
   return ActionSequence;
 })();
 
-// リピートアクション
-var ActionRepeat = (function() {
-  'use strict';
-
-  var Super = Action;
-  var ActionRepeat = defineClass({
-    parent: Super,
-    init: function(repeat, action) {
-      var self = this;
-      Super.call(self);
-      self.count = 0;
-      self.repeat = repeat;
-      self.action = action;
-      self.finished = false;
-    },
-    update: function(target, time) {
-      var self = this;
-      if (time == 0) {
-        self.finished = false;
-      }
-
-      do {
-        var nextTime = self.action.update(target, time);
-        if (!self.action.isFinished(nextTime))
-          return nextTime;
-        if (self.repeat > 0 && ++self.count >= self.repeat) {
-          self.finished = true;
-          return time;
-        }
-
-        time -= nextTime;
-        self.action.update(target, 0);  // 再初期化
-      } while (time > 0);
-      return time;
-    },
-    isFinished: function(time) {
-      var self = this;
-      return self.finished;
-    },
-  });
-
-  return ActionRepeat;
-})();
-
-// 時間変更
-var ActionDuration = (function() {
-  'use strict';
-
-  var Super = Action;
-  var ActionDuration = defineClass({
-    parent: Super,
-    init: function(duration, action) {
-      var self = this;
-      Super.call(self);
-      self.duration = duration;
-      self.action = action;
-    },
-    update: function(target, time) {
-      var self = this;
-      if (self.duration > 0)
-        return self.action.update(target, time / self.duration) * self.duration;
-      self.action.update(target, time == 0 ? 0 : 1);
-      return 0;
-    },
-    isFinished: function(time) {
-      var self = this;
-      return time >= self.duration;
-    },
-  });
-
-  return ActionDuration;
-})();
-
 // ウェイト
 var ActionWait = Action;
 
@@ -249,20 +239,28 @@ var ActionMoveTo = (function() {
   var Super = Action;
   var ActionMoveTo = defineClass({
     parent: Super,
-    init: function(targetPos) {
+    init: function(x, y) {
       var self = this;
       Super.call(self);
-      self.targetPos = targetPos;
+      if (x instanceof Point) {
+        self.targetX = x.x;
+        self.targetY = x.y;
+      } else {
+        self.targetX = x;
+        self.targetY = y;
+      }
+      self.initialX = self.initialY = 0;
     },
     update: function(target, time) {
       var self = this;
       if (time == 0) {
-        self.initialPos = new Point(target.pos.x, target.pos.y);
+        self.initialX = target.pos.x;
+        self.initialY = target.pos.y;
       } else {
         if (time >= 1)
           time = 1;
-        target.pos.set((self.targetPos.x - self.initialPos.x) * time + self.initialPos.x,
-                       (self.targetPos.y - self.initialPos.y) * time + self.initialPos.y);
+        target.setPos((self.targetX - self.initialX) * time + self.initialX,
+                      (self.targetY - self.initialY) * time + self.initialY);
       }
       return time;
     },
@@ -278,20 +276,28 @@ var ActionScaleTo = (function() {
   var Super = Action;
   var ActionScaleTo = defineClass({
     parent: Super,
-    init: function(targetScale) {
+    init: function(x, y) {
       var self = this;
       Super.call(self);
-      self.targetScale = targetScale;
+      if (x instanceof Point) {
+        self.targetX = x.x;
+        self.targetY = x.y;
+      } else {
+        self.targetX = x;
+        self.targetY = y != null ? y : x;
+      }
+      self.initialX = self.initialY = 0;
     },
     update: function(target, time) {
       var self = this;
       if (time == 0) {
-        self.initialScale = new Point(target.scale.x, target.scale.y);
+        self.initialX = target.scale.x;
+        self.initialY = target.scale.y;
       } else {
         if (time >= 1)
           time = 1;
-        target.scale.set((self.targetScale.x - self.initialScale.x) * time + self.initialScale.x,
-                         (self.targetScale.y - self.initialScale.y) * time + self.initialScale.y);
+        target.setScale((self.targetX - self.initialX) * time + self.initialX,
+                        (self.targetY - self.initialY) * time + self.initialY);
       }
       return time;
     },
@@ -350,13 +356,13 @@ var ActionUpdate = (function() {
   return ActionUpdate;
 })();
 
-// Ease
-var ActionEase = (function() {
+// Ease functions.
+var Ease = (function() {
   'use strict';
 
-  var reverse = function(f) {
+  var flip = function(f) {
     return function(t) {
-      return f(1.0 - t);
+      return 1.0 - f(1.0 - t);
     };
   };
 
@@ -376,33 +382,12 @@ var ActionEase = (function() {
     return t * t * t;
   };
 
-  var Super = Action;
-  var ActionEase = defineClass({
-    parent: Super,
-    init: function(f, action) {
-      var self = this;
-      Super.call(self);
-      self.action = action;
-      self.f = f;
-    },
-    update: function(target, time) {
-      var self = this;
-      var modifiedTime = time;
-      if (time >= 1)
-        modifiedTime = time = 1;
-      else
-        modifiedTime = self.f(time);
-      self.action.update(target, modifiedTime);
-      return time;
-    },
-  });
-
-  ActionEase.quadIn = quadIn;
-  ActionEase.quadOut = reverse(quadIn);
-  ActionEase.quadInOut = inOut(quadIn);
-  ActionEase.cubicIn = cubicIn;
-  ActionEase.cubicOut = reverse(cubicIn);
-  ActionEase.cubicInOut = inOut(cubicIn);
-
-  return ActionEase;
+  return {
+    quadIn: quadIn,
+    quadOut: flip(quadIn),
+    quadInOut: inOut(quadIn),
+    cubicIn: cubicIn,
+    cubicOut: flip(cubicIn),
+    cubicInOut: inOut(cubicIn),
+  };
 })();
