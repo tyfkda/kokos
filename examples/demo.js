@@ -27,7 +27,7 @@ var MyScene = (function() {
       var touchStart = function(event) {
         var pos = G.getCanvasTouchPoint(event);
         self.sprite.stopAllActions();
-        self.sprite.runAction(new ActionMoveTo(0.5, pos));
+        self.sprite.runAction(new ActionEase(ActionEase.cubicInOut, new ActionMoveTo(0.5, pos)));
         return false;
       };
       var touchMove = null;

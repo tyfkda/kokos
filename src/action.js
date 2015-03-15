@@ -294,3 +294,62 @@ var ActionUpdate = (function() {
 
   return ActionUpdate;
 })();
+
+// Ease
+var ActionEase = (function() {
+  'use strict';
+
+  var reverse = function(f) {
+    return function(t) {
+      return f(1.0 - t);
+    };
+  };
+
+  var inOut = function(f) {
+    return function(t) {
+      if (t <= 0.5)
+        return f(t * 2) / 2;
+      else
+        return 1.0 - f((1.0 - t) * 2) / 2;
+    };
+  };
+
+  var quadIn = function(t) {
+    return t * t;
+  };
+  var cubicIn = function(t) {
+    return t * t * t;
+  };
+
+  var Super = Action;
+  var ActionEase = defineClass({
+    parent: Super,
+    init: function(f, action) {
+      var self = this;
+      Super.call(self, action.duration);
+      self.action = action;
+      self.f = f;
+    },
+    update: function(target, time) {
+      var self = this;
+      var duration = self.action.duration;
+      var modifiedTime = time;
+      if (time >= duration)
+        modifiedTime = time = duration;
+      else {
+        modifiedTime = self.f(time / duration) * duration;
+      }
+      self.action.update(target, modifiedTime);
+      return time;
+    },
+  });
+
+  ActionEase.quadIn = quadIn;
+  ActionEase.quadOut = reverse(quadIn);
+  ActionEase.quadInOut = inOut(quadIn);
+  ActionEase.cubicIn = cubicIn;
+  ActionEase.cubicOut = reverse(cubicIn);
+  ActionEase.cubicInOut = inOut(cubicIn);
+
+  return ActionEase;
+})();
