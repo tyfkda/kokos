@@ -18,6 +18,43 @@ var Action = (function() {
     },
   });
 
+  var protos = {
+    // base.
+    moveTo: function(pos) {
+      return new ActionMoveTo(pos);
+    },
+    scaleTo: function(scale) {
+      return new ActionScaleTo(scale);
+    },
+    fadeTo: function(alpha) {
+      return new ActionFadeTo(alpha, this);
+    },
+    fadeOut: function(alpha) {
+      return new ActionFadeTo(0, this);
+    },
+    sequence: function(actions) {
+      return new ActionSequence(actions);
+    },
+    repeat: function(repeat, action) {
+      return new ActionRepeat(repeat, action);
+    },
+
+    // modifier.
+    ease: function(f) {
+      return new ActionEase(f, this);
+    },
+    duration: function(duration) {
+      return new ActionDuration(duration, this);
+    },
+
+    // apply.
+    applyTo: function(node) {
+      return node.runAction(this);
+    },
+  };
+  for (var k in protos)
+    Action[k] = Action.prototype[k] = protos[k];
+
   return Action;
 })();
 
