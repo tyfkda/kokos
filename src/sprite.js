@@ -106,9 +106,19 @@ var Sprite = (function() {
       self.pos.set(x, y);
       return self;
     },
+    setAnchorPoint: function(x, y) {
+      var self = this;
+      self.anchorPoint.set(x, y);
+      return self;
+    },
     setScale: function(x, y) {
       var self = this;
       self.scale.set(x, y);
+      return self;
+    },
+    setAlpha: function(alpha) {
+      var self = this;
+      self.alpha = alpha;
       return self;
     },
     setImage: function(image) {
@@ -159,6 +169,11 @@ var Label = (function() {
       self.pos.set(x, y);
       return self;
     },
+    setAnchorPoint: function(x, y) {
+      var self = this;
+      self.anchorPoint.set(x, y);
+      return self;
+    },
     setFont: function(fontSize, fontName) {
       var self = this;
       self.fontSize = fontSize;
@@ -176,6 +191,11 @@ var Label = (function() {
     setColor: function(color) {
       var self = this;
       self.color = color;
+      return self;
+    },
+    setAlpha: function(alpha) {
+      var self = this;
+      self.alpha = alpha;
       return self;
     },
     draw: function(G) {

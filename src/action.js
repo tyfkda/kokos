@@ -3,19 +3,18 @@ var Action = (function() {
   'use strict';
 
   var Action = defineClass({
-    init: function(duration) {
+    init: function() {
       var self = this;
-      self.duration = duration;
     },
     update: function(target, time) {
       var self = this;
-      if (time >= self.duration)
-        time = self.duration;
+      if (time >= 1)
+        time = 1;
       return time;
     },
     isFinished: function(time) {
       var self = this;
-      return time >= self.duration;
+      return time >= 1;
     },
   });
 
@@ -51,7 +50,7 @@ var ActionSequence = (function() {
     parent: Super,
     init: function(actions) {
       var self = this;
-      Super.call(self, 1);  // 適当にdurationを渡す
+      Super.call(self);
       self.actions = actions;
       self.index = 0;
       self.finished = false;
@@ -99,7 +98,7 @@ var ActionRepeat = (function() {
     parent: Super,
     init: function(repeat, action) {
       var self = this;
-      Super.call(self, 1);  // 適当にdurationを渡す
+      Super.call(self);
       self.count = 0;
       self.repeat = repeat;
       self.action = action;
@@ -134,17 +133,37 @@ var ActionRepeat = (function() {
   return ActionRepeat;
 })();
 
-// ウェイト
-var ActionWait = (function() {
+// 時間変更
+var ActionDuration = (function() {
   'use strict';
 
   var Super = Action;
-  var ActionWait = defineClass({
+  var ActionDuration = defineClass({
     parent: Super,
+    init: function(duration, action) {
+      var self = this;
+      Super.call(self);
+      self.duration = duration;
+      self.action = action;
+    },
+    update: function(target, time) {
+      var self = this;
+      if (self.duration > 0)
+        return self.action.update(target, time / self.duration) * self.duration;
+      self.action.update(target, time == 0 ? 0 : 1);
+      return 0;
+    },
+    isFinished: function(time) {
+      var self = this;
+      return time >= self.duration;
+    },
   });
 
-  return ActionWait;
+  return ActionDuration;
 })();
+
+// ウェイト
+var ActionWait = Action;
 
 // フェード
 var ActionFadeTo = (function() {
@@ -152,9 +171,9 @@ var ActionFadeTo = (function() {
   var Super = Action;
   var ActionFadeTo = defineClass({
     parent: Super,
-    init: function(duration, alpha) {
+    init: function(alpha) {
       var self = this;
-      Super.call(self, duration);
+      Super.call(self);
       self.targetAlpha = alpha;
     },
     update: function(target, time) {
@@ -162,10 +181,9 @@ var ActionFadeTo = (function() {
       if (time == 0) {
         self.initialAlpha = target.alpha;
       } else {
-        if (time >= self.duration)
-          time = self.duration;
-        var t = time / self.duration;
-        target.alpha = (self.targetAlpha - self.initialAlpha) * t + self.initialAlpha;
+        if (time >= 1)
+          time = 1;
+        target.alpha = (self.targetAlpha - self.initialAlpha) * time + self.initialAlpha;
       }
       return time;
     },
@@ -179,9 +197,9 @@ var ActionFadeOut = (function() {
   var Super = ActionFadeTo;
   var ActionFadeOut = defineClass({
     parent: Super,
-    init: function(duration) {
+    init: function() {
       var self = this;
-      Super.call(self, duration, 0);
+      Super.call(self, 0);
     },
   });
   return ActionFadeOut;
@@ -194,9 +212,9 @@ var ActionMoveTo = (function() {
   var Super = Action;
   var ActionMoveTo = defineClass({
     parent: Super,
-    init: function(duration, targetPos) {
+    init: function(targetPos) {
       var self = this;
-      Super.call(self, duration);
+      Super.call(self);
       self.targetPos = targetPos;
     },
     update: function(target, time) {
@@ -204,11 +222,10 @@ var ActionMoveTo = (function() {
       if (time == 0) {
         self.initialPos = new Point(target.pos.x, target.pos.y);
       } else {
-        if (time >= self.duration)
-          time = self.duration;
-        var t = time / self.duration;
-        target.pos.set((self.targetPos.x - self.initialPos.x) * t + self.initialPos.x,
-                       (self.targetPos.y - self.initialPos.y) * t + self.initialPos.y);
+        if (time >= 1)
+          time = 1;
+        target.pos.set((self.targetPos.x - self.initialPos.x) * time + self.initialPos.x,
+                       (self.targetPos.y - self.initialPos.y) * time + self.initialPos.y);
       }
       return time;
     },
@@ -224,9 +241,9 @@ var ActionScaleTo = (function() {
   var Super = Action;
   var ActionScaleTo = defineClass({
     parent: Super,
-    init: function(duration, targetScale) {
+    init: function(targetScale) {
       var self = this;
-      Super.call(self, duration);
+      Super.call(self);
       self.targetScale = targetScale;
     },
     update: function(target, time) {
@@ -234,11 +251,10 @@ var ActionScaleTo = (function() {
       if (time == 0) {
         self.initialScale = new Point(target.scale.x, target.scale.y);
       } else {
-        if (time >= self.duration)
-          time = self.duration;
-        var t = time / self.duration;
-        target.scale.set((self.targetScale.x - self.initialScale.x) * t + self.initialScale.x,
-                         (self.targetScale.y - self.initialScale.y) * t + self.initialScale.y);
+        if (time >= 1)
+          time = 1;
+        target.scale.set((self.targetScale.x - self.initialScale.x) * time + self.initialScale.x,
+                         (self.targetScale.y - self.initialScale.y) * time + self.initialScale.y);
       }
       return time;
     },
@@ -280,13 +296,15 @@ var ActionUpdate = (function() {
   var Super = Action;
   var ActionUpdate = defineClass({
     parent: Super,
-    init: function(duration, func) {
+    init: function(func) {
       var self = this;
-      Super.call(self, duration);
+      Super.call(self);
       self.func = func;
     },
     update: function(target, time) {
       var self = this;
+      if (time >= 1)
+        time = 1;
       self.func.call(target, time);
       return time;
     },
@@ -326,19 +344,17 @@ var ActionEase = (function() {
     parent: Super,
     init: function(f, action) {
       var self = this;
-      Super.call(self, action.duration);
+      Super.call(self);
       self.action = action;
       self.f = f;
     },
     update: function(target, time) {
       var self = this;
-      var duration = self.action.duration;
       var modifiedTime = time;
-      if (time >= duration)
-        modifiedTime = time = duration;
-      else {
-        modifiedTime = self.f(time / duration) * duration;
-      }
+      if (time >= 1)
+        modifiedTime = time = 1;
+      else
+        modifiedTime = self.f(time);
       self.action.update(target, modifiedTime);
       return time;
     },
