@@ -20,19 +20,21 @@ var Node = (function() {
       self.children = [];
       self.actionRunners = [];
     },
-    addChild: function(node) {
+    addTo: function(node) {
       var self = this;
-      self.children.push(node);
+      node.children.push(self);
+      return self;
     },
-    removeChild: function(node) {
+    removeFrom: function(node) {
       var self = this;
-      var children = self.children;
+      var children = node.children;
       var len = children.length;
       for (var i = 0; i < len; ++i)
         if (children[i] == node) {
           children.splice(i, 1);
           break;
         }
+      return self;
     },
     traverseDraw: function(G) {
       var self = this;
@@ -58,10 +60,12 @@ var Node = (function() {
       var actionRunner = new ActionRunner(action);
       actionRunner.update(self, 0);  // 時間0で初期化
       self.actionRunners.push(actionRunner);
+      return this;
     },
     stopAllActions: function() {
       var self = this;
       self.actionRunners.length = 0;
+      return self;
     },
     traverseUpdate: function(dt) {
       var self = this;
@@ -86,20 +90,31 @@ var Sprite = (function() {
   var Super = Node;
   var Sprite = defineClass({
     parent: Super,
-    init: function(image, x, y) {
+    init: function(image) {
       var self = this;
       Super.call(self);
       self.image = image;
       self.color = Graphics.color(255, 255, 255);
       self.alpha = 1.0;
-      self.pos = new Point(x, y);
+      self.pos = new Point(0, 0);
       self.scale = new Point(1, 1);
       self.anchorPoint = new Point(0.5, 0.5);
       self.rotate = 0;
     },
+    setPos: function(x, y) {
+      var self = this;
+      self.pos.set(x, y);
+      return self;
+    },
+    setScale: function(x, y) {
+      var self = this;
+      self.scale.set(x, y);
+      return self;
+    },
     setImage: function(image) {
       var self = this;
       self.image = image;
+      return self;
     },
     draw: function(G) {
       var self = this;
@@ -139,21 +154,29 @@ var Label = (function() {
       self.setFont(16);
       self.setText(text);
     },
+    setPos: function(x, y) {
+      var self = this;
+      self.pos.set(x, y);
+      return self;
+    },
     setFont: function(fontSize, fontName) {
       var self = this;
       self.fontSize = fontSize;
       self.fontName = fontName || kDefaultFont;
       self.font = null;
       self.measuredSize.x = -1;  // Clear.
+      return self;
     },
     setText: function(text) {
       var self = this;
       self.text = text || '';
       self.measuredSize.x = -1;  // Clear.
+      return self;
     },
     setColor: function(color) {
       var self = this;
       self.color = color;
+      return self;
     },
     draw: function(G) {
       var self = this;
@@ -193,6 +216,7 @@ var Scene = (function() {
     setBackGroundColor: function(color) {
       var self = this;
       self.bgColor = color;
+      return self;
     },
     beforeDraw: function(G) {
       var self = this;

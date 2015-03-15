@@ -11,23 +11,26 @@ var MyScene = (function() {
       var img = new Image();
       img.src = 'img.png';
 
-      self.sprite = new Sprite(img, G.width / 2, G.height / 2);
-      self.addChild(self.sprite);
+      var sprite = new Sprite(img)
+        .setPos(G.width / 2, G.height / 2)
+        .addTo(self);
 
-      self.satelite = new Sprite(img, 150, 0);
-      self.satelite.scale.set(0.5, 0.5);
-      self.sprite.addChild(self.satelite);
+      new Sprite(img)
+        .setPos(150, 0)
+        .setScale(0.5, 0.5)
+        .addTo(sprite);
 
-      var label = new Label('Hello, world!');
-      label.pos.set(50, 50);
-      label.setFont(30, 'Monotype');
-      label.setColor(G.color(0, 0, 0));
-      self.addChild(label);
+      new Label('Hello, world!')
+        .setPos(50, 50)
+        .setFont(30, 'Monotype')
+        .setColor(G.color(0, 0, 0))
+        .addTo(self);
 
       var touchStart = function(event) {
         var pos = G.getCanvasTouchPoint(event);
-        self.sprite.stopAllActions();
-        self.sprite.runAction(new ActionEase(ActionEase.cubicInOut, new ActionMoveTo(0.5, pos)));
+        sprite.
+          stopAllActions().
+          runAction(new ActionEase(ActionEase.cubicInOut, new ActionMoveTo(0.5, pos)));
         return false;
       };
       var touchMove = null;
