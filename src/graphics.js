@@ -129,7 +129,7 @@ var Graphics = (function() {
   var Graphics = function(canvas) {
     this.canvas = canvas;
     this.context = canvas.getContext('2d');
-    this.scale = window.devicePixelRatio;
+    this.scaleFactor = window.devicePixelRatio;
     this.width = canvas.width;
     this.height = canvas.height;
   };
@@ -153,8 +153,10 @@ var Graphics = (function() {
   }
 
   // カラー値を返す
-  Graphics.color = function(r, g, b) {  /* r,g,b = 0~255 */
-    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  Graphics.color = function(r, g, b, a) {  /* r,g,b = 0~255 */
+    if (a == null)
+      return 'rgb(' + r + ',' + g + ',' + b + ')';
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
   };
 
   // タッチイベントの設定
@@ -191,7 +193,7 @@ var Graphics = (function() {
   Graphics.prototype = {
     // スケールの設定
     setDesignScale: function(scale) {
-      this.scale = scale;
+      this.scaleFactor = scale;
       this.width = this.canvas.width / scale;
       this.height = this.canvas.height / scale;
     },
@@ -201,7 +203,7 @@ var Graphics = (function() {
       this.context.strokeStyle = style;
     },
     setLineWidth: function(width) {
-      this.context.lineWidth = width * this.scale;
+      this.context.lineWidth = width * this.scaleFactor;
     },
     setLineCap: function(cap) {
       this.context.lineCap = cap;
@@ -210,17 +212,17 @@ var Graphics = (function() {
       this.context.fillStyle = style;
     },
     fillRect: function(x, y, w, h) {
-      var scale = this.scale;
+      var scale = this.scaleFactor;
       this.context.fillRect(x * scale, y * scale, w * scale, h * scale);
     },
     fillCircle: function(x, y, r) {
-      var scale = this.scale;
+      var scale = this.scaleFactor;
       this.context.beginPath();
       this.context.arc(x * scale, y * scale, r * scale, 0, 2 * Math.PI, false);
       this.context.fill();
     },
     drawImage: function(image, sx, sy, sw, sh, dx, dy, dw, dh) {
-      var scale = this.scale;
+      var scale = this.scaleFactor;
       if (sw === undefined)
         this.context.drawImage(image, sx * scale, sy * scale, image.width * scale, image.height * scale);
       else if (dx === undefined)
@@ -229,24 +231,24 @@ var Graphics = (function() {
         this.context.drawImage(image, sx, sy, sw, sh, dx * scale, dy * scale, dw * scale, dh * scale);
     },
     fillText: function(text, x, y) {
-      var scale = this.scale;
+      var scale = this.scaleFactor;
       this.context.fillText(text, x * scale, y * scale);
     },
     beginPath: function() { return this.context.beginPath(); },
-    moveTo: function(x, y) { return this.context.moveTo(x * this.scale, y * this.scale); },
-    lineTo: function(x, y) { return this.context.lineTo(x * this.scale, y * this.scale); },
+    moveTo: function(x, y) { return this.context.moveTo(x * this.scaleFactor, y * this.scaleFactor); },
+    lineTo: function(x, y) { return this.context.lineTo(x * this.scaleFactor, y * this.scaleFactor); },
     stroke: function() { return this.context.stroke(); },
     line: function(x1, y1, x2, y2) {
       this.context.beginPath();
-      this.context.moveTo(x1 * this.scale, y1 * this.scale);
-      this.context.lineTo(x2 * this.scale, y2 * this.scale);
+      this.context.moveTo(x1 * this.scaleFactor, y1 * this.scaleFactor);
+      this.context.lineTo(x2 * this.scaleFactor, y2 * this.scaleFactor);
       this.context.stroke();
     },
     // 座標配列を線分として描画
     lines: function(points) {
       if (points.length <= 1)
         return;
-      var scale = this.scale;
+      var scale = this.scaleFactor;
       this.context.beginPath();
       this.context.moveTo(points[0].x * scale, points[0].y * scale);
       for (var j = 1; j < points.length; ++j)
@@ -262,8 +264,9 @@ var Graphics = (function() {
     restoreContext: function() {
       this.context.restore();
     },
-    translate: function(x, y) { return this.context.translate(x * this.scale, y * this.scale); },
+    translate: function(x, y) { return this.context.translate(x * this.scaleFactor, y * this.scaleFactor); },
     rotate: function(angle) { return this.context.rotate(angle); },
+    scale: function(x, y) { return this.context.scale(x, y); },
 
 
     // 描画関数の設定
@@ -305,7 +308,7 @@ var Graphics = (function() {
     // キャンバスのタッチ位置を取得
     getCanvasTouchPoint: function(event) {
       var rect = event.target.getBoundingClientRect();
-      var invs = window.devicePixelRatio / this.scale;
+      var invs = window.devicePixelRatio / this.scaleFactor;
       if ('touches' in event) {
         var touch = event.touches[0];
         return new Point((touch.clientX - rect.left) * invs, (touch.clientY - rect.top) * invs);

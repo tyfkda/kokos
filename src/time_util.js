@@ -24,6 +24,9 @@ var TimeUtil = (function() {
   TimeUtil.getCurrentTime = function() {
     return getTime() - beginTime;
   };
+  TimeUtil.setCurrentTime = function(newTime) {
+    beginTime = getTime() - newTime;
+  };
 
   return TimeUtil;
 })();

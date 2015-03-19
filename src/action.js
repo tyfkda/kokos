@@ -189,6 +189,55 @@ var ActionSequence = (function() {
   return ActionSequence;
 })();
 
+// 並行
+var ActionParallel = (function() {
+  'use strict';
+
+  var Super = Action;
+  var ActionParallel = defineClass({
+    parent: Super,
+    init: function(actions) {
+      var self = this;
+      Super.call(self);
+      self.actions = actions;
+      self.finished = false;
+      self.lastTime = 0;
+    },
+    update: function(target, time) {
+      var self = this;
+      if (time == 0) {
+        self.index = 0;
+        self.finished = false;
+      }
+
+      var result = self.lastTime;
+      var live = 0;
+      for (var i = 0, n = self.actions.length; i < n; ++i) {
+        var action = self.actions[i];
+        if (action == null)
+          continue;
+        var t = action.update(target, time);
+        if (t >= result)
+          result = t;
+        if (action.isFinished(t))
+          self.actions[i] = null;
+        else
+          ++live;
+      }
+      if (live == 0)
+        self.finished = true;
+      self.lastTime = result;
+      return self.lastTime;
+    },
+    isFinished: function(time) {
+      var self = this;
+      return self.finished;
+    },
+  });
+
+  return ActionParallel;
+})();
+
 // ウェイト
 var ActionWait = Action;
 
@@ -304,6 +353,35 @@ var ActionScaleTo = (function() {
   });
 
   return ActionScaleTo;
+})();
+
+// 回転
+var ActionRotateTo = (function() {
+  'use strict';
+
+  var Super = Action;
+  var ActionRotateTo = defineClass({
+    parent: Super,
+    init: function(angle) {
+      var self = this;
+      Super.call(self);
+      self.target = angle;
+      self.initial = 0;
+    },
+    update: function(target, time) {
+      var self = this;
+      if (time == 0) {
+        self.initial = target.rotate;
+      } else {
+        if (time >= 1)
+          time = 1;
+        target.setRotate((self.target - self.initial) * time + self.initial);
+      }
+      return time;
+    },
+  });
+
+  return ActionRotateTo;
 })();
 
 // 関数呼び出し

@@ -17,23 +17,29 @@ var Node = (function() {
   var Node = defineClass({
     init: function() {
       var self = this;
+      self.parent = null;
       self.children = [];
       self.actionRunners = [];
     },
     addTo: function(node) {
       var self = this;
+      self.remove();
       node.children.push(self);
+      self.parent = node;
       return self;
     },
-    removeFrom: function(node) {
+    remove: function() {
       var self = this;
-      var children = node.children;
+      if (self.parent == null)
+        return;
+      var children = self.parent.children;
       var len = children.length;
       for (var i = 0; i < len; ++i)
-        if (children[i] == node) {
+        if (children[i] === self) {
           children.splice(i, 1);
           break;
         }
+      self.parent = null;
       return self;
     },
     traverseDraw: function(G) {
@@ -70,13 +76,12 @@ var Node = (function() {
     traverseUpdate: function(dt) {
       var self = this;
       self.update(dt);
+      executeActionRunners(self, dt);
       var children = self.children;
       for (var i = 0; i < children.length; ++i)
         children[i].traverseUpdate(dt);
     },
     update: function(dt) {
-      var self = this;
-      executeActionRunners(self, dt);
     },
   });
 
@@ -116,6 +121,11 @@ var Sprite = (function() {
       self.scale.set(x, y != null ? y : x);
       return self;
     },
+    setRotate: function(angle) {
+      var self = this;
+      self.rotate = angle;
+      return self;
+    },
     setAlpha: function(alpha) {
       var self = this;
       self.alpha = alpha;
@@ -147,7 +157,7 @@ var Sprite = (function() {
 var Label = (function() {
   'use strict';
 
-  var kDefaultFont = 'ＭＳ Ｐゴシック';
+  var kDefaultFont = "'Lucida Grande', 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', Meiryo, メイリオ, sans-serif";
 
   var Super = Node;
   var Label = defineClass({
@@ -207,12 +217,12 @@ var Label = (function() {
     draw: function(G) {
       var self = this;
       if (!self.font)
-        self.font = Math.round(self.fontSize * self.scale.x * G.scale) + "px '" + self.fontName + "'";
+        self.font = Math.round(self.fontSize * self.scale.x * G.scaleFactor) + "px '" + self.fontName + "'";
 
       G.setFont(self.font);
       if (self.measuredSize.x < 0) {
         var metrics = G.context.measureText(self.text);
-        self.measuredSize.x = metrics.width / G.scale;
+        self.measuredSize.x = metrics.width / G.scaleFactor;
         self.measuredSize.y = self.fontSize * self.scale.y;  //metrics.height;
       }
 
@@ -250,8 +260,10 @@ var Scene = (function() {
     beforeDraw: function(G) {
       var self = this;
       Super.prototype.beforeDraw.call(self, G);
-      G.setFillStyle(self.bgColor);
-      G.fillRect(0, 0, G.width, G.height);
+      if (self.bgColor) {
+        G.setFillStyle(self.bgColor);
+        G.fillRect(0, 0, G.width, G.height);
+      }
     },
   });
   return Scene;
